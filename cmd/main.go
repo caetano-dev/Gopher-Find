@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	u "sherlockgo/utils"
 )
 
 func main() {
 	file, err := os.Open("./resources/data.json")
-	u.HandleError(err)
+	handleError(err)
 	var result map[string]interface{}
 	err = json.NewDecoder(file).Decode(&result)
-	u.HandleError(err)
+	handleError(err)
 	fmt.Print("type the username: ")
 	username := getInput()
 
@@ -27,12 +26,17 @@ func main() {
 
 func checkURL(url interface{}, key interface{}, username string) {
 	resp, err := http.Get(url.(string))
-	u.HandleError(err)
+	handleError(err)
 	defer resp.Body.Close()
-	u.HandleError(err)
+	handleError(err)
 	if resp.StatusCode == 200 {
 		fmt.Println(key)
 		fmt.Println("FOUND -", url.(string)+username)
+	}
+}
+func handleError(err error) {
+	if err != nil {
+		panic(err)
 	}
 }
 
