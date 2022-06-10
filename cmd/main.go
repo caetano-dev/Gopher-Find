@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sherlockgo/cmd/color"
 	"strings"
 )
 
@@ -32,9 +33,8 @@ func checkURL(websiteURL interface{}, websiteName interface{}, username string) 
 	defer resp.Body.Close()
 	handleError(err)
 	if resp.StatusCode == 200 {
-		fmt.Println(websiteName)
-		//fmt.Println("FOUND -", websiteURL.(string)+username)
-		fmt.Println("FOUND -", url)
+		fmt.Println(color.Green+"[-] FOUND -", websiteName, color.Reset)
+		fmt.Println(color.Red, url+color.Reset)
 	}
 }
 func formatedURL(url string, username string) string {
