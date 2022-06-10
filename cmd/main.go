@@ -5,34 +5,40 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func main() {
 	file, err := os.Open("./resources/data.json")
 	handleError(err)
-	var result map[string]interface{}
-	err = json.NewDecoder(file).Decode(&result)
+	var endpoints map[string]interface{}
+	err = json.NewDecoder(file).Decode(&endpoints)
 	handleError(err)
-	fmt.Print("type the username: ")
+	fmt.Print("Type the username: ")
 	username := getInput()
 
-	for key, value := range result {
-		//fmt.Println(key, value)
-		url := value.(map[string]interface{})["url"]
-		checkURL(url, key, username)
+	for websiteName, parameter := range endpoints {
+		//fmt.Println(websiteName, parameter)
+		websiteURL := parameter.(map[string]interface{})["url"]
+		checkURL(websiteURL, websiteName, username)
 	}
 	defer file.Close()
 }
 
-func checkURL(url interface{}, key interface{}, username string) {
-	resp, err := http.Get(url.(string))
+func checkURL(websiteURL interface{}, websiteName interface{}, username string) {
+	url := formatedURL(websiteURL.(string), username)
+	resp, err := http.Get(url)
 	handleError(err)
 	defer resp.Body.Close()
 	handleError(err)
 	if resp.StatusCode == 200 {
-		fmt.Println(key)
-		fmt.Println("FOUND -", url.(string)+username)
+		fmt.Println(websiteName)
+		//fmt.Println("FOUND -", websiteURL.(string)+username)
+		fmt.Println("FOUND -", url)
 	}
+}
+func formatedURL(url string, username string) string {
+	return strings.Replace(url, "{}", username, -1)
 }
 func handleError(err error) {
 	if err != nil {
