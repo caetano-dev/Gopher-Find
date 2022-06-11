@@ -26,11 +26,19 @@ func main() {
 }
 
 func checkURL(websiteURL interface{}, websiteName interface{}, username string) {
-	url := formatedURL(websiteURL.(string), username)
+	url := URLWithUsername(websiteURL.(string), username)
 	resp, err := http.Get(url)
+	// if timeout, skip
+	if err != nil {
+		return
+	}
 	handleConnectionError(err)
 	defer resp.Body.Close()
 	handleError(err)
+	checkStatusCode(resp, websiteName, url)
+}
+
+func checkStatusCode(resp *http.Response, websiteName interface{}, url string) {
 	if resp.StatusCode == 200 {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(url)
@@ -38,18 +46,14 @@ func checkURL(websiteURL interface{}, websiteName interface{}, username string) 
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	}
 }
-func formatedURL(url string, username string) string {
+
+func URLWithUsername(url string, username string) string {
 	return strings.Replace(url, "{}", username, -1)
 }
+
 func handleError(err error) {
 	if err != nil {
 		panic(err)
-	}
-}
-func handleConnectionError(err error) {
-	//TODO: make code continue to run after error message is shown.
-	if err != nil {
-		fmt.Println(color.Red+"[-] CONNECTION ERROR -", err, color.Reset)
 	}
 }
 
