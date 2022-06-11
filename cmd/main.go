@@ -9,30 +9,41 @@ import (
 	"strings"
 )
 
+var foundAccounts []string
+
 func main() {
 	file, err := os.Open("./resources/data.json")
 	handleError(err)
 	var endpoints map[string]interface{}
 	err = json.NewDecoder(file).Decode(&endpoints)
 	handleError(err)
-	fmt.Print("Type the username: ")
+	fmt.Print(`   ______            __                 _____           __
+  / ____/___  ____  / /_  ___  _____   / __(_)___  ____/ /
+ / / __/ __ \/ __ \/ __ \/ _ \/ ___/  / /_/ / __ \/ __  / 
+/ /_/ / /_/ / /_/ / / / /  __/ /     / __/ / / / / /_/ /  
+\____/\____/ .___/_/ /_/\___/_/     /_/ /_/_/ /_/\__,_/   
+          /_/                                             
+
+`)
+	fmt.Print("🐹🔎Who are you looking for? ")
 	username := getInput()
 
 	for websiteName, parameter := range endpoints {
 		websiteURL := parameter.(map[string]interface{})["url"]
 		checkURL(websiteURL, websiteName, username)
 	}
+	fmt.Printf("All websites checked! I created a file called %s.txt containing the links.🐹🔎", username)
+	generateFileWithFoundAcconts(foundAccounts, username)
 	defer file.Close()
 }
 
 func checkURL(websiteURL interface{}, websiteName interface{}, username string) {
-	url := URLWithUsername(websiteURL.(string), username)
+	url := urlWithUsername(websiteURL.(string), username)
 	resp, err := http.Get(url)
 	// if timeout, skip
 	if err != nil {
 		return
 	}
-	handleConnectionError(err)
 	defer resp.Body.Close()
 	handleError(err)
 	checkStatusCode(resp, websiteName, url)
@@ -42,18 +53,29 @@ func checkStatusCode(resp *http.Response, websiteName interface{}, url string) {
 	if resp.StatusCode == 200 {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(url)
+		foundAccounts = append(foundAccounts, url)
 	} else {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	}
 }
 
-func URLWithUsername(url string, username string) string {
+func urlWithUsername(url string, username string) string {
 	return strings.Replace(url, "{}", username, -1)
 }
 
 func handleError(err error) {
 	if err != nil {
 		panic(err)
+	}
+}
+
+func generateFileWithFoundAcconts(foundAccounts []string, fileName string) {
+	file, err := os.Create(fmt.Sprintf("./%s.txt", fileName))
+	handleError(err)
+	defer file.Close()
+	for _, account := range foundAccounts {
+		//TODO: add the website name to the file
+		file.WriteString(account + "\n")
 	}
 }
 
