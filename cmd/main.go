@@ -19,7 +19,6 @@ func main() {
 	username := getInput()
 
 	for websiteName, parameter := range endpoints {
-		//fmt.Println(websiteName, parameter)
 		websiteURL := parameter.(map[string]interface{})["url"]
 		checkURL(websiteURL, websiteName, username)
 	}
@@ -29,12 +28,14 @@ func main() {
 func checkURL(websiteURL interface{}, websiteName interface{}, username string) {
 	url := formatedURL(websiteURL.(string), username)
 	resp, err := http.Get(url)
-	handleError(err)
+	handleConnectionError(err)
 	defer resp.Body.Close()
 	handleError(err)
 	if resp.StatusCode == 200 {
-		fmt.Println(color.Green+"[-] FOUND -", websiteName, color.Reset)
-		fmt.Println(color.Red, url+color.Reset)
+		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
+		fmt.Println(url)
+	} else {
+		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	}
 }
 func formatedURL(url string, username string) string {
@@ -43,6 +44,12 @@ func formatedURL(url string, username string) string {
 func handleError(err error) {
 	if err != nil {
 		panic(err)
+	}
+}
+func handleConnectionError(err error) {
+	//TODO: make code continue to run after error message is shown.
+	if err != nil {
+		fmt.Println(color.Red+"[-] CONNECTION ERROR -", err, color.Reset)
 	}
 }
 
