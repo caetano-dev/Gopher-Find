@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"gopher-find/cmd/color"
 	"net/http"
 	"os"
-	"sherlockgo/cmd/color"
 	"strings"
 )
 
