@@ -25,9 +25,12 @@ func main() {
           /_/                                             
 
 `)
-	fmt.Print("🐹🔎Who are you looking for? ")
-	username := getInput()
-
+	if len(os.Args[1:]) == 0 {
+		fmt.Println(color.Red + "[!] Username is empty" + color.Reset)
+		fmt.Println(color.Red + "[!] Usage: ./gopher-find <username>" + color.Reset)
+		os.Exit(1)
+	}
+	username := os.Args[1]
 	for websiteName, parameter := range endpoints {
 		websiteURL := parameter.(map[string]interface{})["url"]
 		checkIfUserExists(getStatuscode(websiteURL, username), websiteName, urlWithUsername(websiteURL.(string), username))
@@ -74,10 +77,4 @@ func generateFileWithFoundAcconts(foundAccounts []string, fileName string) {
 	for _, account := range foundAccounts {
 		file.WriteString(account + "\n")
 	}
-}
-
-func getInput() string {
-	var input string
-	fmt.Scanln(&input)
-	return input
 }
