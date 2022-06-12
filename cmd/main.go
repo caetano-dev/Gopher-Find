@@ -30,26 +30,25 @@ func main() {
 
 	for websiteName, parameter := range endpoints {
 		websiteURL := parameter.(map[string]interface{})["url"]
-		checkURL(websiteURL, websiteName, username)
+		checkIfUserExists(getStatuscode(websiteURL, username), websiteName, urlWithUsername(websiteURL.(string), username))
 	}
 	fmt.Printf("All websites checked! I created a file called %s.txt containing the links.🐹🔎", username)
 	generateFileWithFoundAcconts(foundAccounts, username)
 	defer file.Close()
 }
 
-func checkURL(websiteURL interface{}, websiteName interface{}, username string) {
+func getStatuscode(websiteURL interface{}, username string) int {
 	resp, err := http.Get(urlWithUsername(websiteURL.(string), username))
-	// if timeout, skip
 	if err != nil {
-		return
+		return 0
 	}
 	defer resp.Body.Close()
 	handleError(err)
-	checkStatusCode(resp, websiteName, urlWithUsername(websiteURL.(string), username))
+	return resp.StatusCode
 }
 
-func checkStatusCode(resp *http.Response, websiteName interface{}, url string) {
-	if resp.StatusCode == 200 {
+func checkIfUserExists(statusCode int, websiteName interface{}, url string) {
+	if statusCode == 200 {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(url)
 		foundAccounts = append(foundAccounts, url)

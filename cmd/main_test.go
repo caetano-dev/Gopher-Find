@@ -6,16 +6,6 @@ import (
 	"testing"
 )
 
-func TestURL(t *testing.T) {
-	url := "http://www.example.com/{}"
-	username := "test"
-	expected := "http://www.example.com/test"
-	actual := urlWithUsername(url, username)
-	if actual != expected {
-		t.Errorf("Expected %s, got %s", expected, actual)
-	}
-}
-
 func TestUrLWithUsername(t *testing.T) {
 	url := "http://www.example.com/{}"
 	username := "test"
