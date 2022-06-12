@@ -38,15 +38,14 @@ func main() {
 }
 
 func checkURL(websiteURL interface{}, websiteName interface{}, username string) {
-	url := urlWithUsername(websiteURL.(string), username)
-	resp, err := http.Get(url)
+	resp, err := http.Get(urlWithUsername(websiteURL.(string), username))
 	// if timeout, skip
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
 	handleError(err)
-	checkStatusCode(resp, websiteName, url)
+	checkStatusCode(resp, websiteName, urlWithUsername(websiteURL.(string), username))
 }
 
 func checkStatusCode(resp *http.Response, websiteName interface{}, url string) {
@@ -74,7 +73,6 @@ func generateFileWithFoundAcconts(foundAccounts []string, fileName string) {
 	handleError(err)
 	defer file.Close()
 	for _, account := range foundAccounts {
-		//TODO: add the website name to the file
 		file.WriteString(account + "\n")
 	}
 }
