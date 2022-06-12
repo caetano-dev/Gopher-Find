@@ -2,13 +2,13 @@
 
 Gopher Find is a blazingly fast alternative to [Sherlock](https://github.com/sherlock-project/sherlock) written in [Go](https://go.dev/).
 
-![[gopher-find-usage.gif]]
+![gopher-find-usage.gif](./.github/assets/gopher-find-usage.gif)
 
 This project is still under development and new features will be added soon.
 
 All the websites Gopher Find look for were extracted from the Sherlock project.
 
-![[links.gif]]
+![links.gif](./.github/assets/links.gif)
 
 ## Known issues
 
