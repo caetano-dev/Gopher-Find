@@ -10,6 +10,11 @@ All the websites Gopher Find look for were extracted from the Sherlock project.
 
 ![links.gif](./.github/assets/links.gif)
 
+## To-do:
+
+- Add support for websites that redirect the url when a user is not found.
+- Fix websites that return false positives.
+
 ## Known issues
 
 - Some websites return false positives. This is caused because Gopher Find uses status codes and error messages to determine if a username is valid or not. Some websites require different methods to get an accurate result. In the future, support for these will be added.
