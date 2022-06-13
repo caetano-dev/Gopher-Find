@@ -40,7 +40,7 @@ func main() {
 		if errorType == "message" {
 			checkIfUserExistsByErrorMessage(websiteName, urlWithUsername(websiteURL.(string), username), errorMessage.(string))
 		} else {
-			//checkIfUserExistsByStatusCode(getStatuscode(websiteURL, username), websiteName, urlWithUsername(websiteURL.(string), username))
+			checkIfUserExistsByStatusCode(getStatuscode(websiteURL, username), websiteName, urlWithUsername(websiteURL.(string), username))
 		}
 
 	}
