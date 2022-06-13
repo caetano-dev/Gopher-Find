@@ -40,13 +40,22 @@ func main() {
 		if errorType == "message" {
 			checkIfUserExistsByErrorMessage(websiteName, urlWithUsername(websiteURL.(string), username), errorMessage.(string))
 		} else {
-			checkIfUserExistsByStatusCode(getStatuscode(websiteURL, username), websiteName, urlWithUsername(websiteURL.(string), username))
+			//checkIfUserExistsByStatusCode(getStatuscode(websiteURL, username), websiteName, urlWithUsername(websiteURL.(string), username))
 		}
 
 	}
 	fmt.Printf("All websites checked! I created a file called %s.txt containing the links.🐹🔎", username)
 	generateFileWithFoundAcconts(foundAccounts, username)
 	defer file.Close()
+}
+func checkIfUserExistsByErrorMessage(websiteName interface{}, urlWithUsername string, errorMessage string) {
+	if strings.Contains(websiteScrape(urlWithUsername), errorMessage) {
+		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName.(string), color.Reset)
+	} else {
+		fmt.Println(color.Green+"[+] FOUND -", websiteName.(string), color.Reset)
+		fmt.Println(urlWithUsername)
+		foundAccounts = append(foundAccounts, urlWithUsername)
+	}
 }
 
 func checkIfUserExistsByStatusCode(statusCode int, websiteName interface{}, urlWithUsername string) {
@@ -56,15 +65,6 @@ func checkIfUserExistsByStatusCode(statusCode int, websiteName interface{}, urlW
 		foundAccounts = append(foundAccounts, urlWithUsername)
 	} else {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
-	}
-}
-func checkIfUserExistsByErrorMessage(websiteName interface{}, urlWithUsername string, errorMessage string) {
-	if strings.Contains(websiteScrape(urlWithUsername), errorMessage) {
-		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
-	} else {
-		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
-		fmt.Println(urlWithUsername)
-		foundAccounts = append(foundAccounts, urlWithUsername)
 	}
 }
 
@@ -78,9 +78,9 @@ func getStatuscode(websiteURL interface{}, username string) int {
 	return resp.StatusCode
 }
 
-func websiteScrape(websiteURL interface{}) string {
+func websiteScrape(urlWithUsername string) string {
 	var websiteContent []string
-	doc, err := goquery.NewDocument(websiteURL.(string))
+	doc, err := goquery.NewDocument(urlWithUsername)
 	if err != nil {
 		return ""
 	}
@@ -90,8 +90,8 @@ func websiteScrape(websiteURL interface{}) string {
 	return strings.Join(websiteContent, " ")
 }
 
-func urlWithUsername(url string, username string) string {
-	return strings.Replace(url, "{}", username, -1)
+func urlWithUsername(websiteURL string, username string) string {
+	return strings.Replace(websiteURL, "{}", username, -1)
 }
 
 func handleError(err error) {
