@@ -2018,7 +2018,8 @@
     "username_unclaimed": "blah62831"
   },
   "VSCO": {
-    "errorType": "status_code",
+    "errorType": "message",
+    "errorMsg" : "Launching soon",
     "url": "https://vsco.co/{}",
     "urlMain": "https://vsco.co/",
     "username_claimed": "blue",

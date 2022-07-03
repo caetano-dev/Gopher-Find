@@ -6,6 +6,7 @@ import (
 	"gopher-find/cmd/color"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -14,8 +15,11 @@ import (
 var foundAccounts []string
 
 func main() {
-	file, err := os.Open("./resources/data.json")
+	wd, err := os.Getwd()
 	handleError(err)
+	file, err := os.Open(filepath.FromSlash(wd + "/cmd/resources/data.json"))
+	handleError(err)
+	defer file.Close()
 	var endpoints map[string]interface{}
 	err = json.NewDecoder(file).Decode(&endpoints)
 	handleError(err)
