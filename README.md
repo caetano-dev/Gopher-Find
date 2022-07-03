@@ -19,7 +19,7 @@ git clone https://github.com/drull1000/gopher-find
 ```
 
 ```sh
-cd Gopher-Find
+cd gopher-find
 ```
 
 ```
@@ -33,7 +33,7 @@ go run cmd/main.go <username>
 or if you want to compile the program:
 
 ```sh
-go build cmd/main.go <username>
+go build cmd/main.go
 ```
 
 ```sh
