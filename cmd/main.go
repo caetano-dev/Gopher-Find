@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"gopher-find/cmd/color"
 	"gopher-find/cmd/models"
@@ -50,17 +51,15 @@ func main() {
 		d, _ := json.Marshal(parameter)
 		err := json.Unmarshal(d, &data)
 		handleError(err)
-
 		urlWithName := urlWithUsername(data.URL, username)
-
 		if data.ErrorType == "message" {
 			checkIfUserExistsByErrorMessage(websiteName, urlWithName, data.ErrorMsg)
+		} else if data.ErrorType == "response_url" {
+			checkIfUserExistsByRedirect(websiteName, urlWithName)
 		} else {
 			checkIfUserExistsByStatusCode(websiteName, urlWithName)
 		}
-
 	}
-
 	fmt.Printf("All websites checked! I created a file called %s.txt containing the links.🐹🔎", username)
 	generateFileWithFoundAcconts(foundAccounts, username)
 }
@@ -77,8 +76,10 @@ func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string,
 
 func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string) {
 	resp, err := http.Get(urlWithUsername)
-	handleError(err)
-
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == 200 {
@@ -90,12 +91,31 @@ func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string) {
 	}
 }
 
+func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string) {
+	req, err := http.NewRequest("GET", urlWithUsername, nil)
+	handleError(err)
+	client := new(http.Client)
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return errors.New("redirect")
+	}
+	response, err := client.Do(req)
+	if err == nil {
+		if response.StatusCode == 302 {
+			fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
+		} else {
+			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
+			fmt.Println(urlWithUsername)
+		}
+
+	}
+}
+
 func websiteScrape(urlWithUsername string) string {
 	res, err := http.Get(urlWithUsername)
 	handleError(err)
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		fmt.Println("Unable to access website due to captcha/JavaScript/Cloudflare.")
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
@@ -117,8 +137,7 @@ func urlWithUsername(websiteURL string, username string) string {
 
 func handleError(err error) {
 	if err != nil {
-		fmt.Println("error")
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
