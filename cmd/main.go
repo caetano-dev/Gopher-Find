@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopher-find/cmd/color"
+	"gopher-find/cmd/models"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -15,14 +17,6 @@ import (
 var foundAccounts []string
 
 func main() {
-	wd, err := os.Getwd()
-	handleError(err)
-	file, err := os.Open(filepath.FromSlash(wd + "/cmd/resources/data.json"))
-	handleError(err)
-	defer file.Close()
-	var endpoints map[string]interface{}
-	err = json.NewDecoder(file).Decode(&endpoints)
-	handleError(err)
 	fmt.Print(`   ______            __                 _____           __
   / ____/___  ____  / /_  ___  _____   / __(_)___  ____/ /
  / / __/ __ \/ __ \/ __ \/ _ \/ ___/  / /_/ / __ \/ __  / 
@@ -31,39 +25,63 @@ func main() {
           /_/                                             
 
 `)
+
 	if len(os.Args[1:]) == 0 {
 		fmt.Println(color.Red + "[!] Username is empty" + color.Reset)
 		fmt.Println(color.Red + "[!] Usage: ./gopher-find <username>" + color.Reset)
 		os.Exit(1)
 	}
+
+	wd, err := os.Getwd()
+	handleError(err)
+
+	file, err := os.Open(filepath.FromSlash(wd + "/cmd/resources/data.json"))
+	handleError(err)
+	defer file.Close()
+
+	var endpoints map[string]interface{}
+	err = json.NewDecoder(file).Decode(&endpoints)
+	handleError(err)
+
 	username := os.Args[1]
+
 	for websiteName, parameter := range endpoints {
-		websiteURL := parameter.(map[string]interface{})["url"]
-		errorType := parameter.(map[string]interface{})["errorType"]
-		errorMessage := parameter.(map[string]interface{})["errorMsg"]
-		if errorType == "message" {
-			checkIfUserExistsByErrorMessage(websiteName, urlWithUsername(websiteURL.(string), username), errorMessage.(string))
+		var data models.Parameter
+		d, _ := json.Marshal(parameter)
+		err := json.Unmarshal(d, &data)
+		handleError(err)
+
+		urlWithName := urlWithUsername(data.URL, username)
+
+		if data.ErrorType == "message" {
+			checkIfUserExistsByErrorMessage(websiteName, urlWithName, data.ErrorMsg)
 		} else {
-			checkIfUserExistsByStatusCode(getStatuscode(websiteURL, username), websiteName, urlWithUsername(websiteURL.(string), username))
+			checkIfUserExistsByStatusCode(websiteName, urlWithName)
 		}
 
 	}
+
 	fmt.Printf("All websites checked! I created a file called %s.txt containing the links.🐹🔎", username)
 	generateFileWithFoundAcconts(foundAccounts, username)
-	defer file.Close()
 }
-func checkIfUserExistsByErrorMessage(websiteName interface{}, urlWithUsername string, errorMessage string) {
+
+func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string, errorMessage string) {
 	if strings.Contains(websiteScrape(urlWithUsername), errorMessage) {
-		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName.(string), color.Reset)
+		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	} else {
-		fmt.Println(color.Green+"[+] FOUND -", websiteName.(string), color.Reset)
+		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
 		foundAccounts = append(foundAccounts, urlWithUsername)
 	}
 }
 
-func checkIfUserExistsByStatusCode(statusCode int, websiteName interface{}, urlWithUsername string) {
-	if statusCode == 200 {
+func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string) {
+	resp, err := http.Get(urlWithUsername)
+	handleError(err)
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 200 {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
 		foundAccounts = append(foundAccounts, urlWithUsername)
@@ -72,25 +90,24 @@ func checkIfUserExistsByStatusCode(statusCode int, websiteName interface{}, urlW
 	}
 }
 
-func getStatuscode(websiteURL interface{}, username string) int {
-	resp, err := http.Get(urlWithUsername(websiteURL.(string), username))
-	if err != nil {
-		return 0
-	}
-	defer resp.Body.Close()
-	handleError(err)
-	return resp.StatusCode
-}
-
 func websiteScrape(urlWithUsername string) string {
-	var websiteContent []string
-	doc, err := goquery.NewDocument(urlWithUsername)
+	res, err := http.Get(urlWithUsername)
+	handleError(err)
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		return ""
 	}
+
+	var websiteContent []string
 	doc.Find("html").Each(func(index int, item *goquery.Selection) {
 		websiteContent = append(websiteContent, item.Text())
 	})
+
 	return strings.Join(websiteContent, " ")
 }
 
