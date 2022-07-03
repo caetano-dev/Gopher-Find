@@ -341,7 +341,7 @@
     "username_unclaimed": "noonewouldeverusethis7"
   },
   "Career.habr": {
-    "errorMsg": "<h1>\u041e\u0448\u0438\u0431\u043a\u0430 404</h1>",
+    "errorMsg": "Ошибка 404",
     "errorType": "message",
     "url": "https://career.habr.com/{}",
     "urlMain": "https://career.habr.com/",
@@ -698,7 +698,7 @@
     "username_unclaimed": "noonewouldeverusethis7"
   },
   "Freelance.habr": {
-    "errorMsg": "<div class=\"icon_user_locked\"></div>",
+    "errorMsg": "Хабр Фриланс - 404",
     "errorType": "message",
     "regexCheck": "^((?!\\.).)*$",
     "url": "https://freelance.habr.com/freelancers/{}",
@@ -707,7 +707,7 @@
     "username_unclaimed": "noonewouldeverusethis7"
   },
   "Freelancer": {
-    "errorMsg": "\"users\":{}",
+    "errorMsg": "Looks like the page you are looking for doesn't exist.",
     "errorType": "message",
     "url": "https://www.freelancer.com/u/{}",
     "urlMain": "https://www.freelancer.com/",
