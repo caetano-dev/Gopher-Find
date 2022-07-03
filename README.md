@@ -14,18 +14,32 @@ All the websites Gopher Find look for were extracted from the Sherlock project.
 
 Assuming you already have Go installed into your machine.
 
-`git clone https://github.com/drull1000/gopher-find`
+```sh
+git clone https://github.com/drull1000/gopher-find
+```
 
-`cd Gopher-Find`
+```sh
+cd Gopher-Find
+```
 
-`go mod tidy`
+```
+go mod tidy
+```
 
-`go run cmd/main.go <username>`
+```sh
+go run cmd/main.go <username>
+```
 
-or if you want to compile the program
+or if you want to compile the program:
 
-`go build cmd/main.go <username>`
-`./main `
+```sh
+go build cmd/main.go <username>
+```
+
+```sh
+./main <username>
+```
+>Note that the json file needs to be in the correct path.
 
 The script will start hunting the urls for you and after going through all of them, it will generate a `<username>.txt` containing all the valid links.
 
@@ -35,4 +49,6 @@ The script will start hunting the urls for you and after going through all of th
 
 ## Contributing
 
-Feel free to fork the project, make changes and open pull requests. Any contribution is welcome.
+Seeing something wrong? Want to help?
+
+Feel free to fork the project, make changes, open pull requests and issues. Any contribution is welcome.
