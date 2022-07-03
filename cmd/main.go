@@ -84,7 +84,7 @@ func websiteScrape(urlWithUsername string) string {
 	if err != nil {
 		return ""
 	}
-	doc.Find("div").Each(func(index int, item *goquery.Selection) {
+	doc.Find("html").Each(func(index int, item *goquery.Selection) {
 		websiteContent = append(websiteContent, item.Text())
 	})
 	return strings.Join(websiteContent, " ")
