@@ -8,8 +8,6 @@ This project is still under development and new features will be added soon.
 
 All the websites Gopher Find look for were extracted from the Sherlock project.
 
-![links.gif](./.github/assets/links.gif)
-
 # Installation and usage
 
 Assuming you already have Go installed into your machine.
