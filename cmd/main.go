@@ -71,7 +71,7 @@ func main() {
 			defer func() {
 				wg.Done()
 				atomic.AddInt64(&count, -1)
-				fmt.Println(atomic.LoadInt64(&count))
+				//fmt.Println(atomic.LoadInt64(&count)) to show websites left.
 			}()
 
 			urlWithName := urlWithUsername(p.URL, username)
