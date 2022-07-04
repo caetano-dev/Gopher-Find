@@ -51,7 +51,9 @@ func main() {
 		d, _ := json.Marshal(parameter)
 		err := json.Unmarshal(d, &data)
 		handleError(err)
+
 		urlWithName := urlWithUsername(data.URL, username)
+
 		if data.ErrorType == "message" {
 			checkIfUserExistsByErrorMessage(websiteName, urlWithName, data.ErrorMsg)
 		} else if data.ErrorType == "response_url" {
@@ -60,6 +62,7 @@ func main() {
 			checkIfUserExistsByStatusCode(websiteName, urlWithName)
 		}
 	}
+
 	fmt.Printf("All websites checked! I created a file called %s.txt containing the links.🐹🔎", username)
 	generateFileWithFoundAcconts(foundAccounts, username)
 }
@@ -98,6 +101,7 @@ func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string) {
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return errors.New("redirect")
 	}
+
 	response, err := client.Do(req)
 	if err == nil {
 		if response.StatusCode == 302 {
