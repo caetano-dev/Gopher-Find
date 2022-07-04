@@ -6,24 +6,36 @@ import (
 	"fmt"
 	"gopher-find/cmd/color"
 	"gopher-find/cmd/models"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-var foundAccounts []string
+var (
+	foundAccounts []string
+	httpClient    = http.Client{Timeout: 30 * time.Second}
+)
+
+type Response struct {
+	code int
+	body string
+}
 
 func main() {
 	fmt.Print(`   ______            __                 _____           __
   / ____/___  ____  / /_  ___  _____   / __(_)___  ____/ /
- / / __/ __ \/ __ \/ __ \/ _ \/ ___/  / /_/ / __ \/ __  / 
-/ /_/ / /_/ / /_/ / / / /  __/ /     / __/ / / / / /_/ /  
-\____/\____/ .___/_/ /_/\___/_/     /_/ /_/_/ /_/\__,_/   
-          /_/                                             
+ / / __/ __ \/ __ \/ __ \/ _ \/ ___/  / /_/ / __ \/ __  /
+/ /_/ / /_/ / /_/ / / / /  __/ /     / __/ / / / / /_/ /
+\____/\____/ .___/_/ /_/\___/_/     /_/ /_/_/ /_/\__,_/
+          /_/
 
 `)
 
@@ -40,28 +52,41 @@ func main() {
 	handleError(err)
 	defer file.Close()
 
-	var endpoints map[string]interface{}
+	var endpoints map[string]models.Parameter
 	err = json.NewDecoder(file).Decode(&endpoints)
 	handleError(err)
 
 	username := os.Args[1]
 
+	var wg sync.WaitGroup
+	wg.Add(len(endpoints))
+
+	count := int64(len(endpoints))
+
 	for websiteName, parameter := range endpoints {
-		var data models.Parameter
-		d, _ := json.Marshal(parameter)
-		err := json.Unmarshal(d, &data)
-		handleError(err)
+		w := websiteName
+		p := parameter
 
-		urlWithName := urlWithUsername(data.URL, username)
+		go func() {
+			defer func() {
+				wg.Done()
+				atomic.AddInt64(&count, -1)
+				fmt.Println(atomic.LoadInt64(&count))
+			}()
 
-		if data.ErrorType == "message" {
-			checkIfUserExistsByErrorMessage(websiteName, urlWithName, data.ErrorMsg)
-		} else if data.ErrorType == "response_url" {
-			checkIfUserExistsByRedirect(websiteName, urlWithName)
-		} else {
-			checkIfUserExistsByStatusCode(websiteName, urlWithName)
-		}
+			urlWithName := urlWithUsername(p.URL, username)
+
+			if p.ErrorType == "message" {
+				checkIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg)
+			} else if p.ErrorType == "response_url" {
+				checkIfUserExistsByRedirect(w, urlWithName)
+			} else {
+				checkIfUserExistsByStatusCode(w, urlWithName)
+			}
+		}()
 	}
+
+	wg.Wait()
 
 	fmt.Printf("All websites checked! I created a file called %s.txt containing the links.🐹🔎", username)
 	generateFileWithFoundAcconts(foundAccounts, username)
@@ -78,14 +103,13 @@ func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string,
 }
 
 func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string) {
-	resp, err := http.Get(urlWithUsername)
+	res, err := doReq(urlWithUsername)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode == 200 {
+	if res.code == 200 {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
 		foundAccounts = append(foundAccounts, urlWithUsername)
@@ -96,8 +120,11 @@ func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string) {
 
 func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string) {
 	req, err := http.NewRequest("GET", urlWithUsername, nil)
-	handleError(err)
-	client := new(http.Client)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	client := httpClient
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return errors.New("redirect")
 	}
@@ -110,19 +137,21 @@ func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string) {
 			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 			fmt.Println(urlWithUsername)
 		}
-
 	}
 }
 
 func websiteScrape(urlWithUsername string) string {
-	res, err := http.Get(urlWithUsername)
-	handleError(err)
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
+	res, err := doReq(urlWithUsername)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	if res.code != 200 {
 		fmt.Println("Unable to access website due to captcha/JavaScript/Cloudflare.")
 	}
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(res.body))
 	if err != nil {
 		return ""
 	}
@@ -133,6 +162,20 @@ func websiteScrape(urlWithUsername string) string {
 	})
 
 	return strings.Join(websiteContent, " ")
+}
+
+func doReq(url string) (Response, error) {
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		return Response{}, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Response{}, err
+	}
+
+	return Response{body: string(body), code: resp.StatusCode}, nil
 }
 
 func urlWithUsername(websiteURL string, username string) string {
