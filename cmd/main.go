@@ -77,11 +77,11 @@ func main() {
 			urlWithName := urlWithUsername(p.URL, username)
 
 			if p.ErrorType == "message" {
-				checkIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg)
+				checkIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg, p.FalsePositive)
 			} else if p.ErrorType == "response_url" {
-				checkIfUserExistsByRedirect(w, urlWithName)
+				checkIfUserExistsByRedirect(w, urlWithName, p.FalsePositive)
 			} else {
-				checkIfUserExistsByStatusCode(w, urlWithName)
+				checkIfUserExistsByStatusCode(w, urlWithName, p.FalsePositive)
 			}
 		}()
 	}
@@ -92,17 +92,22 @@ func main() {
 	generateFileWithFoundAcconts(foundAccounts, username)
 }
 
-func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string, errorMessage string) {
+func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string, errorMessage string, FalsePositive bool) {
 	if strings.Contains(websiteScrape(urlWithUsername), errorMessage) {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	} else {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
-		foundAccounts = append(foundAccounts, urlWithUsername)
+		if (FalsePositive) {
+			foundAccounts = append(foundAccounts, urlWithUsername, "Might be a false positive!")
+		}else{
+			foundAccounts = append(foundAccounts, urlWithUsername)
+		}
+
 	}
 }
 
-func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string) {
+func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string, FalsePositive bool) {
 	res, err := doReq(urlWithUsername)
 	if err != nil {
 		fmt.Println(err)
@@ -112,13 +117,17 @@ func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string) {
 	if res.code == 200 {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
-		foundAccounts = append(foundAccounts, urlWithUsername)
+		if (FalsePositive) {
+			foundAccounts = append(foundAccounts, urlWithUsername, "Might be a false positive!")
+		}else{
+			foundAccounts = append(foundAccounts, urlWithUsername)
+		}
 	} else {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	}
 }
 
-func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string) {
+func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string, FalsePositive bool) {
 	req, err := http.NewRequest("GET", urlWithUsername, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -136,8 +145,13 @@ func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string) {
 		} else {
 			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 			fmt.Println(urlWithUsername)
-		}
+			if (FalsePositive) {
+			foundAccounts = append(foundAccounts, urlWithUsername, "Possible false positive")
+			}else{
+ 				foundAccounts = append(foundAccounts, urlWithUsername)
+			}
 	}
+}
 }
 
 func websiteScrape(urlWithUsername string) string {
