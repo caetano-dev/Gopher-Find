@@ -77,7 +77,7 @@
         "errorType": "status_code",
         "regexCheck": "^[A-Za-z0-9]{2,20}$",
         "request_method": "POST",
-        "falsePositive": "true",
+        "falsePositive": true,
         "request_payload": {
             "query": "query($name:String){User(name:$name){id}}",
             "variables": {
@@ -1359,6 +1359,7 @@
         "errorMsg": "The specified member cannot be found",
         "errorType": "message",
         "url": "https://www.native-instruments.com/forum/members?username={}",
+        "falsePositive" : true,
         "urlMain": "https://www.native-instruments.com/forum/",
         "username_claimed": "blue",
         "username_unclaimed": "noonewouldeverusethis"
@@ -1951,6 +1952,7 @@
         "username_unclaimed": "noonewouldeverusethis"
     },
     "TETR.IO": {
+        "falsePositive" : true,
         "errorMsg": "No such user!",
         "errorType": "message",
         "url": "https://ch.tetr.io/u/{}",
@@ -2141,6 +2143,7 @@
         "errorType": "message",
         "url": "https://virgool.io/@{}",
         "urlMain": "https://virgool.io/",
+        "falsePositive":true,
         "username_claimed": "blue",
         "username_unclaimed": "noonewouldeverusethis7"
     },
@@ -2518,6 +2521,7 @@
     },
     "igromania": {
         "errorMsg": "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u043d\u0435 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043d \u0438 \u043d\u0435 \u0438\u043c\u0435\u0435\u0442 \u043f\u0440\u043e\u0444\u0438\u043b\u044f \u0434\u043b\u044f \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u0430.",
+        "falsePositive":true,
         "errorType": "message",
         "url": "http://forum.igromania.ru/member.php?username={}",
         "urlMain": "http://forum.igromania.ru/",
@@ -2642,7 +2646,7 @@
         "username_unclaimed": "noonewouldeverusethis77777"
     },
     "metacritic": {
-        "errorMsg": "404",
+        "errorMsg": "User not found",
         "errorType": "message",
         "regexCheck": "^(?![-_].)[A-Za-z0-9-_]{3,15}$",
         "url": "https://www.metacritic.com/user/{}",
@@ -2672,7 +2676,8 @@
         "username_unclaimed": "noonewouldeverusethis7"
     },
     "nnRU": {
-        "errorType": "status_code",
+        "errorType": "message",
+        "errorMsg": "QUEER NICKNAME",
         "url": "https://{}.www.nn.ru/",
         "urlMain": "https://https://www.nn.ru/",
         "username_claimed": "blue",
@@ -2703,6 +2708,7 @@
     "opennet": {
         "errorMsg": "\u0418\u043c\u044f \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0430 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e",
         "errorType": "message",
+        "falsePositive":true,
         "regexCheck": "^[^-]*$",
         "url": "https://www.opennet.ru/~{}",
         "urlMain": "https://www.opennet.ru/",
@@ -2741,6 +2747,7 @@
     "pr0gramm": {
         "errorType": "status_code",
         "url": "https://pr0gramm.com/user/{}",
+        "falsePositive":true,
         "urlMain": "https://pr0gramm.com/",
         "urlProbe": "https://pr0gramm.com/api/profile/info?name={}",
         "username_claimed": "cha0s",

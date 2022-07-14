@@ -99,9 +99,9 @@ func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string,
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
 		if (FalsePositive) {
-			foundAccounts = append(foundAccounts, urlWithUsername, "Might be a false positive!")
+			foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername + " - Possible false positive!")
 		}else{
-			foundAccounts = append(foundAccounts, urlWithUsername)
+			foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername)
 		}
 
 	}
@@ -118,9 +118,9 @@ func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string, F
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
 		if (FalsePositive) {
-			foundAccounts = append(foundAccounts, urlWithUsername, "Might be a false positive!")
+			foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername + " - Possible false positive!")
 		}else{
-			foundAccounts = append(foundAccounts, urlWithUsername)
+			foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername)
 		}
 	} else {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
@@ -146,9 +146,9 @@ func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string, Fal
 			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 			fmt.Println(urlWithUsername)
 			if (FalsePositive) {
-			foundAccounts = append(foundAccounts, urlWithUsername, "Possible false positive")
+				foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername + " - Possible false positive!")
 			}else{
- 				foundAccounts = append(foundAccounts, urlWithUsername)
+				foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername)
 			}
 	}
 }
@@ -206,6 +206,7 @@ func generateFileWithFoundAcconts(foundAccounts []string, fileName string) {
 	file, err := os.Create(fmt.Sprintf("./%s.txt", fileName))
 	handleError(err)
 	defer file.Close()
+	file.WriteString("Websites that return false positives are included with a warn. They are added in the file because we believe that it is better to assume these accounts exist and manually check them instead of possibly missing them. We are working to solve this inconvenience and reduce the amount of bad results.\n")
 	for _, account := range foundAccounts {
 		file.WriteString(account + "\n")
 	}
