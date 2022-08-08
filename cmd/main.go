@@ -98,10 +98,10 @@ func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string,
 	} else {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
-		if (FalsePositive) {
-			foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername + " - Possible false positive!")
-		}else{
-			foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername)
+		if FalsePositive {
+			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+" - Possible false positive!")
+		} else {
+			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
 		}
 
 	}
@@ -117,10 +117,10 @@ func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string, F
 	if res.code == 200 {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
-		if (FalsePositive) {
-			foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername + " - Possible false positive!")
-		}else{
-			foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername)
+		if FalsePositive {
+			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+" - Possible false positive!")
+		} else {
+			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
 		}
 	} else {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
@@ -145,13 +145,13 @@ func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string, Fal
 		} else {
 			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 			fmt.Println(urlWithUsername)
-			if (FalsePositive) {
-				foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername + " - Possible false positive!")
-			}else{
-				foundAccounts = append(foundAccounts, websiteName + " - " + urlWithUsername)
+			if FalsePositive {
+				foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+" - Blocked by CloudFlare. Manual check required.")
+			} else {
+				foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
 			}
+		}
 	}
-}
 }
 
 func websiteScrape(urlWithUsername string) string {
@@ -206,7 +206,7 @@ func generateFileWithFoundAcconts(foundAccounts []string, fileName string) {
 	file, err := os.Create(fmt.Sprintf("./%s.txt", fileName))
 	handleError(err)
 	defer file.Close()
-	file.WriteString("Websites that return false positives are included with a warn. They are added in the file because we believe that it is better to assume these accounts exist and manually check them instead of possibly missing them. We are working to solve this inconvenience and reduce the amount of bad results.\n")
+	file.WriteString("Websites that return false positives are included with a warn. They are added in the file because we believe that it is better to assume these accounts exist and manually check them instead of possibly missing results. We are working to solve this inconvenience and reduce the amount of bad entries.\n")
 	for _, account := range foundAccounts {
 		file.WriteString(account + "\n")
 	}
