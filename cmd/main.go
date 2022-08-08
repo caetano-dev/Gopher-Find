@@ -63,6 +63,7 @@ func main() {
 
 	count := int64(len(endpoints))
 
+	const falsePositiveMessage = " - Blocked by CloudFlare. Manual check required."
 	for websiteName, parameter := range endpoints {
 		w := websiteName
 		p := parameter
@@ -77,11 +78,11 @@ func main() {
 			urlWithName := urlWithUsername(p.URL, username)
 
 			if p.ErrorType == "message" {
-				checkIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg, p.FalsePositive)
+				checkIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg, p.FalsePositive, falsePositiveMessage)
 			} else if p.ErrorType == "response_url" {
-				checkIfUserExistsByRedirect(w, urlWithName, p.FalsePositive)
+				checkIfUserExistsByRedirect(w, urlWithName, p.FalsePositive, falsePositiveMessage)
 			} else {
-				checkIfUserExistsByStatusCode(w, urlWithName, p.FalsePositive)
+				checkIfUserExistsByStatusCode(w, urlWithName, p.FalsePositive, falsePositiveMessage)
 			}
 		}()
 	}
@@ -92,14 +93,14 @@ func main() {
 	generateFileWithFoundAcconts(foundAccounts, username)
 }
 
-func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string, errorMessage string, FalsePositive bool) {
+func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string, errorMessage string, FalsePositive bool, falsePositiveMessage string) {
 	if strings.Contains(websiteScrape(urlWithUsername), errorMessage) {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	} else {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
 		if FalsePositive {
-			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+" - Possible false positive!")
+			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+falsePositiveMessage)
 		} else {
 			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
 		}
@@ -107,7 +108,7 @@ func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string,
 	}
 }
 
-func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string, FalsePositive bool) {
+func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string, FalsePositive bool, falsePositiveMessage string) {
 	res, err := doReq(urlWithUsername)
 	if err != nil {
 		fmt.Println(err)
@@ -118,7 +119,7 @@ func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string, F
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(urlWithUsername)
 		if FalsePositive {
-			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+" - Possible false positive!")
+			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+falsePositiveMessage)
 		} else {
 			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
 		}
@@ -127,7 +128,7 @@ func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string, F
 	}
 }
 
-func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string, FalsePositive bool) {
+func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string, FalsePositive bool, falsePositiveMessage string) {
 	req, err := http.NewRequest("GET", urlWithUsername, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -146,7 +147,7 @@ func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string, Fal
 			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 			fmt.Println(urlWithUsername)
 			if FalsePositive {
-				foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+" - Blocked by CloudFlare. Manual check required.")
+				foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+falsePositiveMessage)
 			} else {
 				foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
 			}
