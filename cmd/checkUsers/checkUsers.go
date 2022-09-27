@@ -1,0 +1,126 @@
+package checkUsers
+
+import (
+	"errors"
+	"fmt"
+	"gopher-find/cmd/color"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/PuerkitoBio/goquery"
+)
+
+var (
+	FoundAccounts []string
+	httpClient    = http.Client{Timeout: 30 * time.Second}
+)
+
+type Response struct {
+	code int
+	body string
+}
+
+func doReq(url string) (Response, error) {
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		return Response{}, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Response{}, err
+	}
+
+	return Response{body: string(body), code: resp.StatusCode}, nil
+}
+
+func CheckIfUserExistsByErrorMessage(websiteName string, UrlWithUsername string, errorMessage string, FalsePositive bool, falsePositiveMessage string) {
+	if strings.Contains(websiteScrape(UrlWithUsername), errorMessage) {
+		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
+	} else {
+		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
+		fmt.Println(UrlWithUsername)
+		if FalsePositive {
+			FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername+falsePositiveMessage)
+		} else {
+			FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername)
+		}
+	}
+}
+
+func CheckIfUserExistsByStatusCode(websiteName string, UrlWithUsername string, FalsePositive bool, falsePositiveMessage string) {
+	res, err := doReq(UrlWithUsername)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if res.code == 200 {
+		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
+		fmt.Println(UrlWithUsername)
+		if FalsePositive {
+			FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername+falsePositiveMessage)
+		} else {
+			FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername)
+		}
+	} else {
+		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
+	}
+}
+
+func CheckIfUserExistsByRedirect(websiteName string, UrlWithUsername string, FalsePositive bool, falsePositiveMessage string) {
+	req, err := http.NewRequest("GET", UrlWithUsername, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	client := httpClient
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return errors.New("redirect")
+	}
+
+	response, err := client.Do(req)
+	if err == nil {
+		if response.StatusCode == 302 {
+			fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
+		} else {
+			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
+			fmt.Println(UrlWithUsername)
+			if FalsePositive {
+				FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername+falsePositiveMessage)
+			} else {
+				FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername)
+			}
+		}
+	}
+}
+
+func websiteScrape(UrlWithUsername string) string {
+	res, err := doReq(UrlWithUsername)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	if res.code != 200 {
+		fmt.Println("Unable to access website due to captcha/JavaScript/Cloudflare.")
+	}
+
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(res.body))
+	if err != nil {
+		return ""
+	}
+
+	var websiteContent []string
+	doc.Find("html").Each(func(index int, item *goquery.Selection) {
+		websiteContent = append(websiteContent, item.Text())
+	})
+
+	return strings.Join(websiteContent, " ")
+}
+
+func UrlWithUsername(websiteURL string, username string) string {
+	return strings.Replace(websiteURL, "{}", username, -1)
+}

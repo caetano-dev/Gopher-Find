@@ -2,32 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	c "gopher-find/cmd/checkUsers"
 	"gopher-find/cmd/color"
 	"gopher-find/cmd/models"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
-
-	"github.com/PuerkitoBio/goquery"
 )
-
-var (
-	foundAccounts []string
-	httpClient    = http.Client{Timeout: 30 * time.Second}
-)
-
-type Response struct {
-	code int
-	body string
-}
 
 func main() {
 	fmt.Print(`   ______            __                 _____           __
@@ -75,14 +59,14 @@ func main() {
 				//fmt.Println(atomic.LoadInt64(&count)) to show websites left.
 			}()
 
-			urlWithName := urlWithUsername(p.URL, username)
+			urlWithName := c.UrlWithUsername(p.URL, username)
 
 			if p.ErrorType == "message" {
-				checkIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg, p.FalsePositive, falsePositiveMessage)
+				c.CheckIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg, p.FalsePositive, falsePositiveMessage)
 			} else if p.ErrorType == "response_url" {
-				checkIfUserExistsByRedirect(w, urlWithName, p.FalsePositive, falsePositiveMessage)
+				c.CheckIfUserExistsByRedirect(w, urlWithName, p.FalsePositive, falsePositiveMessage)
 			} else {
-				checkIfUserExistsByStatusCode(w, urlWithName, p.FalsePositive, falsePositiveMessage)
+				c.CheckIfUserExistsByStatusCode(w, urlWithName, p.FalsePositive, falsePositiveMessage)
 			}
 		}()
 	}
@@ -90,125 +74,20 @@ func main() {
 	wg.Wait()
 
 	fmt.Printf("All websites checked! I created a file called %s.txt containing the links.🐹🔎", username)
-	generateFileWithFoundAcconts(foundAccounts, username)
+	generateFileWithFoundAcconts(c.FoundAccounts, username)
 }
 
-func checkIfUserExistsByErrorMessage(websiteName string, urlWithUsername string, errorMessage string, FalsePositive bool, falsePositiveMessage string) {
-	if strings.Contains(websiteScrape(urlWithUsername), errorMessage) {
-		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
-	} else {
-		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
-		fmt.Println(urlWithUsername)
-		if FalsePositive {
-			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+falsePositiveMessage)
-		} else {
-			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
-		}
-
-	}
-}
-
-func checkIfUserExistsByStatusCode(websiteName string, urlWithUsername string, FalsePositive bool, falsePositiveMessage string) {
-	res, err := doReq(urlWithUsername)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if res.code == 200 {
-		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
-		fmt.Println(urlWithUsername)
-		if FalsePositive {
-			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+falsePositiveMessage)
-		} else {
-			foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
-		}
-	} else {
-		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
-	}
-}
-
-func checkIfUserExistsByRedirect(websiteName string, urlWithUsername string, FalsePositive bool, falsePositiveMessage string) {
-	req, err := http.NewRequest("GET", urlWithUsername, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	client := httpClient
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return errors.New("redirect")
-	}
-
-	response, err := client.Do(req)
-	if err == nil {
-		if response.StatusCode == 302 {
-			fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
-		} else {
-			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
-			fmt.Println(urlWithUsername)
-			if FalsePositive {
-				foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername+falsePositiveMessage)
-			} else {
-				foundAccounts = append(foundAccounts, websiteName+" - "+urlWithUsername)
-			}
-		}
-	}
-}
-
-func websiteScrape(urlWithUsername string) string {
-	res, err := doReq(urlWithUsername)
-	if err != nil {
-		fmt.Println(err)
-		return ""
-	}
-
-	if res.code != 200 {
-		fmt.Println("Unable to access website due to captcha/JavaScript/Cloudflare.")
-	}
-
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(res.body))
-	if err != nil {
-		return ""
-	}
-
-	var websiteContent []string
-	doc.Find("html").Each(func(index int, item *goquery.Selection) {
-		websiteContent = append(websiteContent, item.Text())
-	})
-
-	return strings.Join(websiteContent, " ")
-}
-
-func doReq(url string) (Response, error) {
-	resp, err := httpClient.Get(url)
-	if err != nil {
-		return Response{}, err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return Response{}, err
-	}
-
-	return Response{body: string(body), code: resp.StatusCode}, nil
-}
-
-func urlWithUsername(websiteURL string, username string) string {
-	return strings.Replace(websiteURL, "{}", username, -1)
-}
-
-func handleError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func generateFileWithFoundAcconts(foundAccounts []string, fileName string) {
+func generateFileWithFoundAcconts(FoundAccounts []string, fileName string) {
 	file, err := os.Create(fmt.Sprintf("./%s.txt", fileName))
 	handleError(err)
 	defer file.Close()
 	file.WriteString("Websites that return false positives are included with a warn. They are added in the file because we believe that it is better to assume these accounts exist and manually check them instead of possibly missing results. We are working to solve this inconvenience and reduce the amount of bad entries.\n")
-	for _, account := range foundAccounts {
+	for _, account := range c.FoundAccounts {
 		file.WriteString(account + "\n")
+	}
+}
+func handleError(err error) {
+	if err != nil {
+		log.Fatal(err)
 	}
 }
