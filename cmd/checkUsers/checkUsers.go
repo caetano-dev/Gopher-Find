@@ -1,3 +1,4 @@
+// Package checkUsers contains the functions necessary for validating if a user exists in the websites.
 package checkUsers
 
 import (
@@ -12,11 +13,13 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+// FoundAccounts is an array with all of the found accounts.
 var (
 	FoundAccounts []string
 	httpClient    = http.Client{Timeout: 30 * time.Second}
 )
 
+// Response is the http response structure with a code and a body.
 type Response struct {
 	code int
 	body string
@@ -36,22 +39,24 @@ func doReq(url string) (Response, error) {
 	return Response{body: string(body), code: resp.StatusCode}, nil
 }
 
-func CheckIfUserExistsByErrorMessage(websiteName string, UrlWithUsername string, errorMessage string, FalsePositive bool, falsePositiveMessage string) {
-	if strings.Contains(websiteScrape(UrlWithUsername), errorMessage) {
+// CheckIfUserExistsByErrorMessage check if the user exists by error message.
+func CheckIfUserExistsByErrorMessage(websiteName string, URLWithUsername string, errorMessage string, FalsePositive bool, falsePositiveMessage string) {
+	if strings.Contains(websiteScrape(URLWithUsername), errorMessage) {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	} else {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
-		fmt.Println(UrlWithUsername)
+		fmt.Println(URLWithUsername)
 		if FalsePositive {
-			FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername+falsePositiveMessage)
+			FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername+falsePositiveMessage)
 		} else {
-			FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername)
+			FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
 		}
 	}
 }
 
-func CheckIfUserExistsByStatusCode(websiteName string, UrlWithUsername string, FalsePositive bool, falsePositiveMessage string) {
-	res, err := doReq(UrlWithUsername)
+// CheckIfUserExistsByStatusCode check if the user exists by status code.
+func CheckIfUserExistsByStatusCode(websiteName string, URLWithUsername string, FalsePositive bool, falsePositiveMessage string) {
+	res, err := doReq(URLWithUsername)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -59,19 +64,20 @@ func CheckIfUserExistsByStatusCode(websiteName string, UrlWithUsername string, F
 
 	if res.code == 200 {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
-		fmt.Println(UrlWithUsername)
+		fmt.Println(URLWithUsername)
 		if FalsePositive {
-			FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername+falsePositiveMessage)
+			FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername+falsePositiveMessage)
 		} else {
-			FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername)
+			FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
 		}
 	} else {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 	}
 }
 
-func CheckIfUserExistsByRedirect(websiteName string, UrlWithUsername string, FalsePositive bool, falsePositiveMessage string) {
-	req, err := http.NewRequest("GET", UrlWithUsername, nil)
+// CheckIfUserExistsByRedirect check if the user exists by redirect.
+func CheckIfUserExistsByRedirect(websiteName string, URLWithUsername string, FalsePositive bool, falsePositiveMessage string) {
+	req, err := http.NewRequest("GET", URLWithUsername, nil)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -87,18 +93,18 @@ func CheckIfUserExistsByRedirect(websiteName string, UrlWithUsername string, Fal
 			fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 		} else {
 			fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
-			fmt.Println(UrlWithUsername)
+			fmt.Println(URLWithUsername)
 			if FalsePositive {
-				FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername+falsePositiveMessage)
+				FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername+falsePositiveMessage)
 			} else {
-				FoundAccounts = append(FoundAccounts, websiteName+" - "+UrlWithUsername)
+				FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
 			}
 		}
 	}
 }
 
-func websiteScrape(UrlWithUsername string) string {
-	res, err := doReq(UrlWithUsername)
+func websiteScrape(URLWithUsername string) string {
+	res, err := doReq(URLWithUsername)
 	if err != nil {
 		fmt.Println(err)
 		return ""
@@ -121,6 +127,7 @@ func websiteScrape(UrlWithUsername string) string {
 	return strings.Join(websiteContent, " ")
 }
 
-func UrlWithUsername(websiteURL string, username string) string {
+// URLWithUsername creates a URL with the username.
+func URLWithUsername(websiteURL string, username string) string {
 	return strings.Replace(websiteURL, "{}", username, -1)
 }

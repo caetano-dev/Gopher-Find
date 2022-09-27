@@ -1,3 +1,4 @@
+// Package main is the main package.
 package main
 
 import (
@@ -59,7 +60,7 @@ func main() {
 				//fmt.Println(atomic.LoadInt64(&count)) to show websites left.
 			}()
 
-			urlWithName := c.UrlWithUsername(p.URL, username)
+			urlWithName := c.URLWithUsername(p.URL, username)
 
 			if p.ErrorType == "message" {
 				c.CheckIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg, p.FalsePositive, falsePositiveMessage)
