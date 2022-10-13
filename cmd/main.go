@@ -78,12 +78,12 @@ func main() {
 	generateFileWithFoundAcconts(c.FoundAccounts, username)
 }
 
-func generateFileWithFoundAcconts(FoundAccounts []string, fileName string) {
+func generateFileWithFoundAcconts(foundAccounts []string, fileName string) {
 	file, err := os.Create(fmt.Sprintf("./%s.txt", fileName))
 	handleError(err)
 	defer file.Close()
 	file.WriteString("Websites that return false positives are included with a warn. They are added in the file because we believe that it is better to assume these accounts exist and manually check them instead of possibly missing results. We are working to solve this inconvenience and reduce the amount of bad entries.\n")
-	for _, account := range c.FoundAccounts {
+	for _, account := range foundAccounts {
 		file.WriteString(account + "\n")
 	}
 }

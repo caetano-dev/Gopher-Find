@@ -3,27 +3,18 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
-func TestUrLWithUsername(t *testing.T) {
-	url := "http://www.example.com/{}"
-	username := "test"
-	expected := "http://www.example.com/test"
-	actual := urlWithUsername(url, username)
-	if actual != expected {
-		t.Errorf("Expected %s, got %s", expected, actual)
-	}
-}
-
 func TestGenerateFileWithFoundAcconts(t *testing.T) {
-	foundAccounts = []string{"https://www.google.com", "https://www.facebook.com"}
+	foundAccounts := []string{"https://www.google.com", "https://www.facebook.com"}
 	generateFileWithFoundAcconts(foundAccounts, "test")
-	expected := "https://www.google.com\nhttps://www.facebook.com\n"
+	expected := "https://www.google.com" + "\n" + "https://www.facebook.com"
 	actual, err := ioutil.ReadFile("./test.txt")
 	handleError(err)
-	if string(actual) != expected {
-		panic("expected: " + expected + " actual: " + string(actual))
+	if !strings.Contains(string(actual), expected) {
+		t.Errorf("File doesn't contain expected string %s", expected)
 	}
 	err = os.Remove("./test.txt")
 	handleError(err)
