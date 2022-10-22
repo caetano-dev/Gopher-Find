@@ -16,7 +16,7 @@ import (
 
 func main() {
 	fmt.Print(`   ______            __                 _____           __
-/ ____/___  ____  / /_  ___  _____   / __(_)___  ____/ /
+  / ____/___  ____  / /_  ___  _____   / __(_)___  ____/ /
  / / __/ __ \/ __ \/ __ \/ _ \/ ___/  / /_/ / __ \/ __  /
 / /_/ / /_/ / /_/ / / / /  __/ /     / __/ / / / / /_/ /
 \____/\____/ .___/_/ /_/\___/_/     /_/ /_/_/ /_/\__,_/
@@ -82,7 +82,7 @@ func generateFileWithFoundAcconts(foundAccounts []string, fileName string) {
 	file, err := os.Create(fmt.Sprintf("./%s.txt", fileName))
 	handleError(err)
 	defer file.Close()
-	file.WriteString("Websites that return false positives are included with a warn. They are added in the file because we believe that it is better to assume these accounts exist and manually check them instead of possibly missing results. We are working to solve this inconvenience and reduce the amount of bad entries.\n")
+	file.WriteString("WARNING!\n Websites that return false positives are included with a warn. They are added in the file because we believe that it is better to assume these accounts exist and manually check them instead of possibly missing results. We are working to solve this inconvenience and reduce the amount of bad entries.\n------------------------------------------------------------\n")
 	for _, account := range foundAccounts {
 		file.WriteString(account + "\n")
 	}
