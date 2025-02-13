@@ -45,7 +45,7 @@ func getRandomUserAgent() string {
 	return userAgents[rand.Intn(len(userAgents))]
 }
 
-func validateResponse(res Response, websiteName string, parameter models.Parameter) bool {
+func validateResponse(res Response, parameter models.Parameter) bool {
 	if res.code != 200 {
 		return false
 	}
@@ -147,7 +147,7 @@ func CheckIfUserExistsByStatusCode(websiteName string, URLWithUsername string, p
 		return
 	}
 
-	if !validateResponse(res, websiteName, parameter) {
+	if !validateResponse(res, parameter) {
 		fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 		return
 	}
@@ -224,7 +224,7 @@ func CheckIfUserExistsByRedirect(websiteName string, URLWithUsername string, par
 			body: string(body),
 		}
 
-		if !validateResponse(res, websiteName, parameter) {
+		if !validateResponse(res, parameter) {
 			fmt.Println(color.Red+"[-] NOT FOUND -", websiteName, color.Reset)
 			return
 		}
