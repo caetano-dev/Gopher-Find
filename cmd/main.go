@@ -7,11 +7,14 @@ import (
 	c "gopher-find/cmd/checkUsers"
 	"gopher-find/cmd/color"
 	"gopher-find/cmd/models"
+	"gopher-find/cmd/utils"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 func main() {
@@ -43,6 +46,7 @@ func main() {
 
 	username := os.Args[1]
 
+	rateLimiter := utils.NewRateLimiter()
 	var wg sync.WaitGroup
 	wg.Add(len(endpoints))
 
@@ -57,17 +61,26 @@ func main() {
 			defer func() {
 				wg.Done()
 				atomic.AddInt64(&count, -1)
-				//fmt.Println(atomic.LoadInt64(&count)) to show websites left.
 			}()
 
 			urlWithName := c.URLWithUsername(p.URL, username)
 
+			parsedURL, err := url.Parse(urlWithName)
+			if err != nil {
+				fmt.Printf("Error parsing URL for %s: %v\n", w, err)
+				return
+			}
+
+			for !rateLimiter.Allow(parsedURL.Host) {
+				time.Sleep(100 * time.Millisecond)
+			}
+
 			if p.ErrorType == "message" {
-				c.CheckIfUserExistsByErrorMessage(w, urlWithName, p.ErrorMsg, p.FalsePositive, falsePositiveMessage)
+				c.CheckIfUserExistsByErrorMessage(w, urlWithName, p, falsePositiveMessage)
 			} else if p.ErrorType == "response_url" {
-				c.CheckIfUserExistsByRedirect(w, urlWithName, p.FalsePositive, falsePositiveMessage)
+				c.CheckIfUserExistsByRedirect(w, urlWithName, p, falsePositiveMessage)
 			} else {
-				c.CheckIfUserExistsByStatusCode(w, urlWithName, p.FalsePositive, falsePositiveMessage)
+				c.CheckIfUserExistsByStatusCode(w, urlWithName, p, falsePositiveMessage)
 			}
 		}()
 	}

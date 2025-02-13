@@ -11,10 +11,13 @@ var Red = "\033[31m"
 // Green is a green code for the terminal.
 var Green = "\033[32m"
 
+var Yellow = "\033[33m"
+
 func init() {
 	if runtime.GOOS == "windows" {
 		Reset = ""
 		Red = ""
 		Green = ""
+		Yellow = ""
 	}
 }
