@@ -52,7 +52,6 @@ func main() {
 
 	count := int64(len(endpoints))
 
-	const falsePositiveMessage = " - Blocked by CloudFlare. Manual check required."
 	for websiteName, parameter := range endpoints {
 		w := websiteName
 		p := parameter
@@ -76,11 +75,11 @@ func main() {
 			}
 
 			if p.ErrorType == "message" {
-				c.CheckIfUserExistsByErrorMessage(w, urlWithName, p, falsePositiveMessage)
+				c.CheckIfUserExistsByErrorMessage(w, urlWithName, p)
 			} else if p.ErrorType == "response_url" {
-				c.CheckIfUserExistsByRedirect(w, urlWithName, p, falsePositiveMessage)
+				c.CheckIfUserExistsByRedirect(w, urlWithName, p)
 			} else {
-				c.CheckIfUserExistsByStatusCode(w, urlWithName, p, falsePositiveMessage)
+				c.CheckIfUserExistsByStatusCode(w, urlWithName, p)
 			}
 		}()
 	}

@@ -15,7 +15,6 @@ type Parameter struct {
 	ErrorURL          string            `json:"errorUrl,omitempty"`
 	IsNSFW            bool              `json:"isNSFW,omitempty"`
 	RegexCheck        string            `json:"regexCheck,omitempty"`
-	FalsePositive     bool              `json:"falsePositive,omitempty"`
 }
 
 // GetErrorMessages returns all error messages as a string slice

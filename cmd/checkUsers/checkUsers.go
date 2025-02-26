@@ -111,7 +111,7 @@ func doReq(urlStr string) (Response, error) {
 	return Response{body: string(body), code: resp.StatusCode}, nil
 }
 
-func CheckIfUserExistsByErrorMessage(websiteName string, URLWithUsername string, parameter models.Parameter, falsePositiveMessage string) {
+func CheckIfUserExistsByErrorMessage(websiteName string, URLWithUsername string, parameter models.Parameter) {
 	res, err := doReq(URLWithUsername)
 	if err != nil {
 		fmt.Println(color.Red+"[-] ERROR -", websiteName, "-", err, color.Reset)
@@ -132,15 +132,11 @@ func CheckIfUserExistsByErrorMessage(websiteName string, URLWithUsername string,
 	} else {
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(URLWithUsername)
-		if parameter.FalsePositive {
-			FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername+falsePositiveMessage)
-		} else {
-			FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
-		}
+		FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
 	}
 }
 
-func CheckIfUserExistsByStatusCode(websiteName string, URLWithUsername string, parameter models.Parameter, falsePositiveMessage string) {
+func CheckIfUserExistsByStatusCode(websiteName string, URLWithUsername string, parameter models.Parameter) {
 	res, err := doReq(URLWithUsername)
 	if err != nil {
 		fmt.Println(color.Red+"[-] ERROR -", websiteName, "-", err, color.Reset)
@@ -162,15 +158,11 @@ func CheckIfUserExistsByStatusCode(websiteName string, URLWithUsername string, p
 
 	fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 	fmt.Println(URLWithUsername)
-	if parameter.FalsePositive {
-		FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername+falsePositiveMessage)
-	} else {
-		FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
-	}
+	FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
 }
 
 // CheckIfUserExistsByRedirect check if the user exists by redirect.
-func CheckIfUserExistsByRedirect(websiteName string, URLWithUsername string, parameter models.Parameter, falsePositiveMessage string) {
+func CheckIfUserExistsByRedirect(websiteName string, URLWithUsername string, parameter models.Parameter) {
 	// First make a normal request to check for delayed redirects in the content
 	res, err := doReq(URLWithUsername)
 	if err != nil {
@@ -231,11 +223,7 @@ func CheckIfUserExistsByRedirect(websiteName string, URLWithUsername string, par
 
 		fmt.Println(color.Green+"[+] FOUND -", websiteName, color.Reset)
 		fmt.Println(URLWithUsername)
-		if parameter.FalsePositive {
-			FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername+falsePositiveMessage)
-		} else {
-			FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
-		}
+		FoundAccounts = append(FoundAccounts, websiteName+" - "+URLWithUsername)
 	}
 }
 func websiteScrape(URLWithUsername string) string {
